@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHANTOM ACADEMY | LMS & Masterclasses de Diseño & Streetwear</title>
+    <meta name="description" content="Plataforma de aprendizaje oficial de PHANTOM LINE. Domina la creación de streetwear táctico, 3D render y drops exclusivos.">
+    
+    <!-- Fonts: Inter & Oswald -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Oswald:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Stripe JS SDK -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#070707',
+                            card: '#121212',
+                            accent: '#E50914',
+                            gold: '#C5A059',
+                            gray: '#888888',
+                            light: '#F5F5F5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { background-color: #070707; color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .font-display { font-family: 'Oswald', sans-serif; }
+        .glass-nav {
+            background: rgba(7, 7, 7, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .course-card { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease; }
+        .course-card:hover { transform: translateY(-6px); }
+        .lesson-item { transition: all 0.2s ease; }
+        .lesson-item.active { background-color: rgba(229, 9, 20, 0.15); border-left: 4px solid #E50914; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070707; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+        @keyframes toastIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-toast { animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 w-full glass-nav z-40 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                <div class="flex items-center gap-3">
+                    <a href="#" class="font-display text-3xl tracking-tighter font-extrabold uppercase italic flex items-center">
+                        PHANTOM<span class="text-brand-accent ml-1">//</span>ACADEMY
+                    </a>
+                </div>
+
+                <nav class="hidden lg:flex items-center space-x-6">
+                    <a href="#courses" onclick="filterCourses('all')" class="nav-btn font-semibold text-xs tracking-wider uppercase text-white hover:text-brand-accent transition-colors">Todos los Temarios</a>
+                    <a href="#courses" onclick="filterCourses('assassin')" class="nav-btn font-semibold text-xs tracking-wider uppercase text-neutral-400 hover:text-red-500 transition-colors">Assassin's Creed (Gratis)</a>
+                    <a href="#courses" onclick="filterCourses('fast')" class="nav-btn font-semibold text-xs tracking-wider uppercase text-neutral-400 hover:text-yellow-500 transition-colors">Fast & Furious (Gratis)</a>
+                    <a href="#courses" onclick="filterCourses('cod')" class="nav-btn font-semibold text-xs tracking-wider uppercase text-neutral-400 hover:text-green-500 transition-colors">Call of Duty Gear</a>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <div id="user-status-badge" class="hidden sm:flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full text-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-neutral-300 font-semibold">Acceso: <strong id="access-level" class="text-white">Estudiante Gratuito</strong></span>
+                    </div>
+
+                    <button onclick="openStripeModalPlan('VIP PASS ALL-ACCESS', 149.99)" class="relative group bg-brand-accent text-white font-extrabold px-5 py-2.5 rounded-full text-xs uppercase tracking-widest hover:bg-red-700 transition-all transform active:scale-95 flex items-center gap-2 shadow-lg shadow-red-600/30">
+                        <span>Pase VIP Completo</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="relative min-h-[75vh] flex items-end justify-start pt-28 pb-16 px-4 sm:px-6 lg:px-12 overflow-hidden border-b border-neutral-900">
+        <div class="absolute inset-0 z-0">
+            <img src="logo.jpg" alt="Phantom Academy LMS" class="w-full h-full object-cover object-center filter brightness-30" onerror="this.src='logo.jpg'">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#070707] via-[#070707]/60 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 max-w-4xl space-y-6">
+            <div class="inline-flex items-center gap-2 bg-neutral-900/90 border border-neutral-700/80 px-3 py-1.5 rounded-full backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
+                <span class="text-xs uppercase tracking-widest font-semibold text-neutral-300">LMS & Test de Lore & Diseño 2026</span>
+            </div>
+
+            <h1 class="font-display text-5xl sm:text-7xl lg:text-8xl font-extrabold uppercase tracking-tight leading-none text-white italic">
+                ACCESO LIBRE <br>& MASTERCLASSES.
+            </h1>
+
+            <p class="text-base sm:text-xl text-neutral-300 max-w-2xl font-light leading-relaxed">
+                Los temarios de <strong class="text-white">Assassin's Creed</strong> y <strong class="text-white">Fast & Furious</strong> son completamente gratuitos. Explora sus masterclasses de diseño, lore e imparte los test sin restricciones.
+            </p>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO DE TEMARIOS -->
+    <section id="courses" class="py-20 bg-neutral-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-neutral-800/80 pb-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-brand-accent">Official Training Modules</span>
+                    <h2 class="font-display text-4xl sm:text-5xl font-extrabold uppercase italic tracking-tight text-white mt-1">Temarios & Exámenes</h2>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterCourses('all')" class="course-filter-btn active bg-white text-black font-bold px-5 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all">Todos</button>
+                    <button onclick="filterCourses('assassin')" class="course-filter-btn bg-neutral-900 text-neutral-400 hover:text-white font-bold px-5 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all border border-neutral-800">Assassin's Creed (Gratis)</button>
+                    <button onclick="filterCourses('fast')" class="course-filter-btn bg-neutral-900 text-neutral-400 hover:text-white font-bold px-5 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all border border-neutral-800">Fast & Furious (Gratis)</button>
+                    <button onclick="filterCourses('cod')" class="course-filter-btn bg-neutral-900 text-neutral-400 hover:text-white font-bold px-5 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all border border-neutral-800">Call of Duty</button>
+                </div>
+            </div>
+
+            <!-- PARRILLA DE CURSOS -->
+            <div id="courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+
+        </div>
+    </section>
+
+    <!-- AULA VIRTUAL (VÍDEOS NATIVOS + TEST CON LORE) -->
+    <section id="player-section" class="py-20 bg-neutral-900/60 border-t border-neutral-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-brand-accent">Aula Virtual Interactiva</span>
+                    <h2 id="current-course-title" class="font-display text-3xl sm:text-4xl font-extrabold uppercase italic text-white mt-1">Selecciona un Temario</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-neutral-400">Progreso del Temario:</span>
+                    <div class="w-36 bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700">
+                        <div id="course-progress-bar" class="bg-brand-accent h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <span id="course-progress-text" class="text-xs font-bold text-white">0%</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                
+                <!-- Reproductor Nativo y Test de Lore -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- REPRODUCTOR VÍDEO NATIVO CON POSTER -->
+                    <div class="relative bg-black rounded-2xl overflow-hidden border border-neutral-800 aspect-video flex items-center justify-center shadow-2xl">
+                        <video id="native-video-player" controls poster="AC.jpg" class="w-full h-full object-cover">
+                            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                            Tu navegador no soporta vídeo HTML5.
+                        </video>
+                    </div>
+
+                    <!-- Detalles de la lección -->
+                    <div class="bg-neutral-950 p-6 rounded-2xl border border-neutral-800 space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span id="lesson-module-tag" class="text-[10px] uppercase tracking-widest font-bold text-neutral-400">Lección 1</span>
+                                <h3 id="lesson-title" class="font-display text-2xl font-bold uppercase text-white mt-1">Título de la Lección</h3>
+                            </div>
+                            <button id="complete-lesson-btn" onclick="markLessonComplete()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all">
+                                ✓ Marcar Completada
+                            </button>
+                        </div>
+                        <p id="lesson-description" class="text-xs text-neutral-400 leading-relaxed">Descripción de la lección actual.</p>
+                    </div>
+
+                    <!-- TEST / EXAMEN INTERACTIVO VINCULADO A LA LECCIÓN -->
+                    <div id="quiz-box" class="bg-neutral-950 p-6 rounded-2xl border border-neutral-800 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-display text-lg font-bold uppercase text-white">Test Específico de la Lección</h4>
+                            <span class="text-[10px] bg-red-600/20 text-red-400 px-2.5 py-1 rounded-full border border-red-500/30 font-bold uppercase">Evaluación de Lore & Técnica</span>
+                        </div>
+                        <p id="quiz-question" class="text-xs text-neutral-300 font-medium"></p>
+                        <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                    </div>
+                </div>
+
+                <!-- Temario Sidebar -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-2xl p-6 space-y-4">
+                    <h3 class="font-display text-xl font-bold uppercase text-white border-b border-neutral-800 pb-3">Temario del Curso</h3>
+                    <div id="lessons-list" class="space-y-2 max-h-[600px] overflow-y-auto pr-2"></div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL STRIPE CHECKOUT -->
+    <div id="stripe-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeStripeModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-neutral-800 pb-4">
+                <div class="w-10 h-10 rounded-xl bg-brand-accent flex items-center justify-center text-white font-black text-xl">S</div>
+                <div>
+                    <h3 class="font-display text-xl font-bold uppercase italic text-white">Stripe LMS Checkout</h3>
+                    <p id="checkout-item-name" class="text-xs text-neutral-400">Pase Anual</p>
+                </div>
+            </div>
+
+            <div class="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 flex justify-between items-center">
+                <span class="text-xs text-neutral-400 uppercase font-semibold">Total Inscripción</span>
+                <span id="checkout-item-price" class="font-display text-2xl font-extrabold text-white">0.00 €</span>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="completeStripePayment('Apple Pay')" class="w-full bg-white text-black font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2"> Pay (Exprés)</button>
+                <button onclick="completeStripePayment('Google Pay')" class="w-full bg-neutral-800 border border-neutral-700 text-white font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-wider hover:bg-neutral-700 transition-all flex items-center justify-center gap-2">G Pay (Exprés)</button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); completeStripePayment('Tarjeta de Crédito');" class="space-y-3">
+                <div>
+                    <label class="block text-[10px] uppercase font-bold text-neutral-400 mb-1">Número de Tarjeta</label>
+                    <input type="text" placeholder="4242 •••• •••• 4242" required class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-accent">
+                </div>
+                <button type="submit" class="w-full bg-brand-accent hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-widest transition-all mt-2">Confirmar Pago Seguro</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JAVASCRIPT CON TEMARIOS Y TEST ACTUALIZADOS -->
+    <script>
+        const coursesData = [
+            {
+                id: "c1",
+                title: "Assassin's Creed: Lore, Patronaje & Hoja Oculta",
+                category: "assassin",
+                price: 0.00,
+                isFree: true,
+                image: "AC.jpg",
+                description: "Estudio histórico del Credo y guía técnica para confeccionar capuchas de pico, brazaletes de piel y modelado 3D de la Hoja Oculta.",
+                lessons: [
+                    { 
+                        id: "l1", 
+                        title: "1. Historia y Simbología de la Hermandad", 
+                        duration: "15 min", 
+                        poster: "AC.jpg", 
+                        desc: "Evolución estilística del credo de los Asesinos a lo largo de las distintas épocas históricas.",
+                        quiz: {
+                            question: "¿Quién fue el primer individuo registrado en la historia en utilizar la Hoja Oculta para asesinar a Jerjes I de Persia?",
+                            options: ["Altaïr Ibn-La'Ahad", "Darius (Darío)", "Ezio Auditore", "Bayek de Siwa"],
+                            correct: 1
+                        }
+                    },
+                    { 
+                        id: "l2", 
+                        title: "2. Confección del Brazalete y Hoja Oculta", 
+                        duration: "30 min", 
+                        poster: "AC1.jpg", 
+                        desc: "Análisis del mecanismo retráctil de resorte y texturizado de cuero envejecido.",
+                        quiz: {
+                            question: "¿Qué modificación introdujo Altaïr Ibn-La'Ahad en el Códice para evitar la amputación del dedo anular?",
+                            options: ["Añadir una segunda hoja exterior", "Rediseñar el mecanismo interno para no exigir el sacrificio del dedo", "Colocar el cañón de pólvora en el pulgar", "Usar un gancho mecánico en Constantinopla"],
+                            correct: 1
+                        }
+                    },
+                    { 
+                        id: "l3", 
+                        title: "3. Variantes Nórdicas y Custom PS5", 
+                        duration: "25 min", 
+                        poster: "mando-AC.jpg", 
+                        desc: "Técnicas de grabado en mandos PS5 y montaje sobre el antebrazo estilo Eivor.",
+                        quiz: {
+                            question: "¿Por qué Eivor Varinsdottir portaba la Hoja Oculta en la cara EXTERIOR del antebrazo?",
+                            options: ["Porque no pertenecía formalmente a la orden y la mostraba con orgullo", "Por un fallo en la fragua de Ravensthorpe", "Para disparar proyectiles venenosos", "Para sujetar el escudo pesado"],
+                            correct: 0
+                        }
+                    }
+                ]
+            },
+            {
+                id: "c3",
+                title: "PUMA x Fast & Furious: Streetwear & JDM Paddock",
+                category: "fast",
+                price: 0.00,
+                isFree: true,
+                image: "portada1.jpg",
+                description: "Temario gratuito sobre la cultura del motor JDM, el diseño de zapatillas Nitro Foam y sudaderas Skyline R34.",
+                lessons: [
+                    { 
+                        id: "l6", 
+                        title: "1. El Legado de Brian O'Conner", 
+                        duration: "18 min", 
+                        poster: "portada1.jpg", 
+                        desc: "Repaso a la trayectoria y el impacto del personaje interpretado por Paul Walker en la saga.",
+                        quiz: {
+                            question: "¿Cuál es el nombre del personaje interpretado por el difunto Paul Walker?",
+                            options: ["Brian O'Conner", "Roman Pearce", "Luke Hobbs", "Tej Parker"],
+                            correct: 0
+                        }
+                    },
+                    { 
+                        id: "l7", 
+                        title: "2. La Familia Toretto y la Hermandad", 
+                        duration: "20 min", 
+                        poster: "banner.jpg", 
+                        desc: "Análisis de las relaciones familiares y los vínculos dentro del equipo de Dominic Toretto.",
+                        quiz: {
+                            question: "¿Cómo se llama la hermana de Dominic Toretto?",
+                            options: ["Mia", "Letty", "Elena", "Gisele"],
+                            correct: 0
+                        }
+                    },
+                    { 
+                        id: "l8", 
+                        title: "3. Máquinas JDM y el inicio de 2 Fast 2 Furious", 
+                        duration: "22 min", 
+                        poster: "camiseta Fast&furious1.jpg", 
+                        desc: "Especificaciones técnicas del Nissan Skyline GT-R R34 y la cultura de carreras callejeras.",
+                        quiz: {
+                            question: "¿Qué modelo de coche conduce Brian O'Conner al inicio de 2 Fast 2 Furious?",
+                            options: ["Nissan Skyline GT-R R34", "Toyota Supra MK4", "Mitsubishi Eclipse", "Mazda RX-7"],
+                            correct: 0
+                        }
+                    }
+                ]
+            },
+            {
+                id: "c2",
+                title: "Call of Duty Store: Ropa Táctica & Warzone Gear",
+                category: "cod",
+                price: 39.99,
+                isFree: false,
+                image: "COD.jpg",
+                description: "Aprende a diseñar merchandising militar de alta gama inspirado en Simon 'Ghost' Riley y equipamiento táctico de Warzone.",
+                lessons: [
+                    { 
+                        id: "l4", 
+                        title: "1. Lore Militar y Gráficos Modern Warfare", 
+                        duration: "20 min", 
+                        poster: "COD.jpg", 
+                        desc: "Uso de tipografías tácticas, camuflajes urbanos y simbología militar.",
+                        quiz: {
+                            question: "¿A qué unidad de élite de las fuerzas armadas británicas perteneció Simon 'Ghost' Riley antes de integrar la Task Force 141?",
+                            options: ["Royal Marines", "SAS (Special Air Service)", "Navy Seals", "Delta Force"],
+                            correct: 1
+                        }
+                    },
+                    { 
+                        id: "l5", 
+                        title: "2. Diseño de Camisetas Ghost Edition", 
+                        duration: "25 min", 
+                        poster: "COD-camisetaGhost.jpg", 
+                        desc: "Impresión de alta densidad y acabados reflectantes sobre felpa gris.",
+                        quiz: {
+                            question: "¿Cuál es el distintivo visual más representativo impreso en el merchandising oficial de Ghost?",
+                            options: ["La máscara de calavera balística", "Una insignia de un dragón", "Una estrella roja metálica", "El mapa topográfico de Verdansk"],
+                            correct: 0
+                        }
+                    }
+                ]
+            }
+        ];
+
+        let activeCourse = coursesData[0];
+        let activeLesson = coursesData[0].lessons[0];
+        let purchasedCourses = JSON.parse(localStorage.getItem('phantom_lms_purchased')) || ["c1", "c3"];
+        let completedLessons = JSON.parse(localStorage.getItem('phantom_lms_completed')) || [];
+        let pendingCheckoutItem = null;
+
+        function renderCourses(list) {
+            const grid = document.getElementById('courses-grid');
+            grid.innerHTML = '';
+
+            list.forEach(course => {
+                const isUnlocked = purchasedCourses.includes(course.id) || course.isFree;
+                const card = document.createElement('div');
+                card.className = 'course-card bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden flex flex-col justify-between';
+
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden bg-neutral-950">
+                        <img src="${course.image}" alt="${course.title}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop'">
+                        <span class="absolute top-3 left-3 text-[10px] uppercase font-bold px-3 py-1 rounded-full ${isUnlocked ? 'bg-emerald-600 text-white' : 'bg-brand-accent text-white'}">
+                            ${isUnlocked ? '✓ GRATIS / DESBLOQUEADO' : 'PREMIUM'}
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-display text-xl font-bold uppercase text-white">${course.title}</h3>
+                            <p class="text-xs text-neutral-400 mt-2 leading-relaxed">${course.description}</p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-neutral-800 flex items-center justify-between">
+                            <span class="font-display text-xl font-bold text-white">${course.isFree ? 'GRATIS' : course.price.toFixed(2) + ' €'}</span>
+                            ${isUnlocked ? 
+                                `<button onclick="loadCourse('${course.id}')" class="bg-white text-black font-extrabold px-4 py-2 rounded-xl text-xs uppercase tracking-wider hover:bg-neutral-200">Ver Temario</button>` :
+                                `<button onclick="openStripeModalPlan('${course.title}', ${course.price}, '${course.id}')" class="bg-brand-accent text-white font-extrabold px-4 py-2 rounded-xl text-xs uppercase tracking-wider hover:bg-red-700">Comprar Temario</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCourses(cat) {
+            if (cat === 'all') renderCourses(coursesData);
+            else renderCourses(coursesData.filter(c => c.category === cat));
+        }
+
+        function loadCourse(courseId) {
+            const course = coursesData.find(c => c.id === courseId);
+            if (!course) return;
+
+            activeCourse = course;
+            document.getElementById('current-course-title').textContent = course.title;
+            renderLessonsList();
+            selectLesson(course.lessons[0].id);
+            updateProgressUI();
+            document.getElementById('player-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderLessonsList() {
+            const container = document.getElementById('lessons-list');
+            container.innerHTML = '';
+
+            activeCourse.lessons.forEach((lesson, index) => {
+                const isCompleted = completedLessons.includes(lesson.id);
+                const isActive = activeLesson.id === lesson.id;
+
+                const item = document.createElement('div');
+                item.className = `lesson-item p-3.5 rounded-xl border border-neutral-800 cursor-pointer flex items-center justify-between ${isActive ? 'active' : 'bg-neutral-950'}`;
+                item.onclick = () => selectLesson(lesson.id);
+
+                item.innerHTML = `
+                    <div>
+                        <span class="text-[10px] text-neutral-500 uppercase font-bold">Lección ${index + 1} &bull; ${lesson.duration}</span>
+                        <h4 class="text-xs font-bold text-white mt-0.5">${lesson.title}</h4>
+                    </div>
+                    <span class="text-xs font-bold ${isCompleted ? 'text-emerald-500' : 'text-neutral-600'}">${isCompleted ? '✓' : '○'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function selectLesson(lessonId) {
+            const lesson = activeCourse.lessons.find(l => l.id === lessonId);
+            if (!lesson) return;
+
+            activeLesson = lesson;
+            const videoPlayer = document.getElementById('native-video-player');
+            videoPlayer.poster = lesson.poster || activeCourse.image;
+            videoPlayer.load();
+
+            document.getElementById('lesson-title').textContent = lesson.title;
+            document.getElementById('lesson-description').textContent = lesson.desc;
+
+            renderQuiz();
+            renderLessonsList();
+        }
+
+        function markLessonComplete() {
+            if (!completedLessons.includes(activeLesson.id)) {
+                completedLessons.push(activeLesson.id);
+                localStorage.setItem('phantom_lms_completed', JSON.stringify(completedLessons));
+                showToast("¡Lección completada y test superado!");
+                renderLessonsList();
+                updateProgressUI();
+            }
+        }
+
+        function updateProgressUI() {
+            const total = activeCourse.lessons.length;
+            const completed = activeCourse.lessons.filter(l => completedLessons.includes(l.id)).length;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('course-progress-bar').style.width = `${percent}%`;
+            document.getElementById('course-progress-text').textContent = `${percent}%`;
+        }
+
+        function renderQuiz() {
+            const quiz = activeLesson.quiz;
+            const container = document.getElementById('quiz-options');
+            if (!quiz) return;
+
+            document.getElementById('quiz-question').textContent = quiz.question;
+            container.innerHTML = '';
+
+            quiz.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-xs font-semibold text-neutral-300 p-3 rounded-xl text-left transition-all";
+                btn.textContent = `${idx + 1}. ${opt}`;
+                btn.onclick = () => {
+                    if (idx === quiz.correct) {
+                        showToast("¡Respuesta Correcta! Evaluación aprobada.");
+                        markLessonComplete();
+                    } else {
+                        showToast("Respuesta incorrecta. ¡Revisa el vídeo de la clase e inténtalo de nuevo!");
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        async function openStripeModalPlan(title, price, courseId = null) {
+            if (price === 0) {
+                showToast("Este temario ya es gratuito.");
+                return;
+            }
+
+            try {
+                showToast("Conectando con la pasarela segura de Stripe...");
+                
+                const response = await fetch('/api/lms/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        courseId: courseId || 'vip_pass', 
+                        courseTitle: title, 
+                        price: price 
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error("No se pudo generar la sesión de pago.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                showToast("Error al procesar el pago con el servidor.");
+            }
+        }
+
+        function closeStripeModal() {
+            document.getElementById('stripe-modal').classList.add('hidden');
+        }
+
+        function completeStripePayment(method) {
+            closeStripeModal();
+            showToast(`¡Pago procesado con éxito via Stripe (${method})!`);
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-white text-black font-bold px-4 py-3 rounded-xl shadow-xl text-xs uppercase tracking-wider flex items-center gap-2 animate-toast pointer-events-auto';
+            toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-brand-accent"></span><span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.onload = function() {
+            renderCourses(coursesData);
+            loadCourse(coursesData[0].id);
+        };
+    </script>
+</body>
+</html>
